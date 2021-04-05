@@ -1,2 +1,14 @@
 *.class
 *.log
+.DS_Store
+logs
+target
+.classpath
+.project
+.settings
+.bsp
+.idea
+.vscode
+.bloop
+.metals
+metals.sbt
