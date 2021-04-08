@@ -5,7 +5,7 @@ import cats.laws.discipline.*
 import munit.DisciplineSuite
 
 class ReaderSuite extends DisciplineSuite with CatsCompat:
-  import ReaderGenerator.given
+  import ReaderGenerators.given
   import ReaderEq.given
 
   checkAll("Reader[Int, Int]", FunctorTests[[A] =>> Reader[Int, A]].functor[Int, Int, Int])

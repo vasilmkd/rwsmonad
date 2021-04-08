@@ -3,9 +3,11 @@ package rwsmonad
 opaque type Writer[L, A] = () => (L, A)
 
 object Writer:
+  extension [L, A] (w: Writer[L, A]) def apply(): (L, A) = w()
+
   def tell[L](log: L): Writer[L, Unit] = () => (log, ())
 
-  def censor[L, A](f: L => L)(wa: Writer[L, A]): Writer[L, A] =
+  def censor[L, A](wa: Writer[L, A])(f: L => L): Writer[L, A] =
     () =>
       val (log, a) = wa()
       (f(log), a)
