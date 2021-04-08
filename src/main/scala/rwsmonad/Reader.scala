@@ -3,14 +3,15 @@ package rwsmonad
 opaque type Reader[R, A] = R => A
 
 object Reader:
-  extension [R, A] (reader: Reader[R, A]) def apply(r: R): A = reader(r)
+  extension [R, A] (ra: Reader[R, A])
+    def apply(r: R): A = ra(r)
+
+    def local[R1](f: R1 => R): Reader[R1, A] =
+      r1 => ra(f(r1))
 
   def ask[R]: Reader[R, R] = identity
 
   def asks[R, A](f: R => A): Reader[R, A] = f
-
-  def local[R1, R2, A](r: Reader[R2, A])(f: R1 => R2): Reader[R1, A] =
-    r1 => r(f(r1))
 
   given [R]: Functor[[A] =>> Reader[R, A]] with
     extension [A] (fa: Reader[R, A]) def map[B](f: A => B): Reader[R, B] =

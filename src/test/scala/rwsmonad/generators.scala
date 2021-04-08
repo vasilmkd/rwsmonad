@@ -135,7 +135,7 @@ object ReaderGenerators:
         for
           fa <- deeper[A]
           f <- arbitrary[R => R]
-        yield Reader.local(fa)(f)
+        yield fa.local(f)
 
   given [R: Arbitrary: Cogen, A: Arbitrary: Cogen]: Arbitrary[Reader[R, A]] =
     Arbitrary(generators[R].generators[A])
@@ -165,12 +165,12 @@ object WriterGenerators:
         for
           fa <- deeper[A]
           f <- arbitrary[L => L]
-        yield Writer.censor(fa)(f)
+        yield fa.censor(f)
 
       private def genListen[A: Arbitrary: Cogen](deeper: GenK[[A] =>> Writer[L, A]]): Gen[Writer[L, A]] =
         for
           fa <- deeper[A]
-        yield Writer.listen(fa).map(_._1)
+        yield fa.listen.map(_._1)
 
   given [L: Monoid: Arbitrary: Cogen, A: Arbitrary: Cogen]: Arbitrary[Writer[L, A]] =
     Arbitrary(generators[L].generators[A])
