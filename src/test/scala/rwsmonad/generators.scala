@@ -1,3 +1,9 @@
+/*
+ * The following code has been shamelessly taken from Cats Effect 3. The
+ * original code can be found here:
+ * https://github.com/typelevel/cats-effect/blob/1cc8eec66a170e6befca7cf457d6989bc546dba6/kernel-testkit/shared/src/main/scala/cats/effect/kernel/testkit/Generators.scala
+ */
+
 package rwsmonad
 
 import org.scalacheck.{Arbitrary, Cogen, Gen}, Arbitrary.arbitrary
@@ -81,18 +87,18 @@ object StateGenerators:
           ("modify", genModify)
         ) ++ super.baseGen
 
-      private def genGet[A: Arbitrary: Cogen]: Gen[State[S, A]] =
+      private def genGet[A: Arbitrary]: Gen[State[S, A]] =
         for
           a <- arbitrary[A]
         yield State.get.map(_ => a)
 
-      private def genPut[A: Arbitrary: Cogen]: Gen[State[S, A]] =
+      private def genPut[A: Arbitrary]: Gen[State[S, A]] =
         for
           s <- arbitrary[S]
           a <- arbitrary[A]
         yield State.put(s).map(_ => a)
 
-      private def genModify[A: Arbitrary: Cogen]: Gen[State[S, A]] =
+      private def genModify[A: Arbitrary]: Gen[State[S, A]] =
         for
           f <- arbitrary[S => S]
           a <- arbitrary[A]
@@ -100,3 +106,36 @@ object StateGenerators:
 
   given [S: Arbitrary: Cogen, A: Arbitrary: Cogen]: Arbitrary[State[S, A]] =
     Arbitrary(generators[S].generators[A])
+
+object ReaderGenerator:
+  def generators[R: Arbitrary: Cogen]: MonadGenerators[[A] =>> Reader[R, A]] =
+    new MonadGenerators[[A] =>> Reader[R, A]]:
+      given F: Monad[[A] =>> Reader[R, A]] = Reader.given_Monad_Reader
+
+      override protected def baseGen[A: Arbitrary: Cogen]: List[(String, Gen[Reader[R, A]])] =
+        List(
+          ("ask", genAsk),
+          ("asks", genAsks)
+        ) ++ super.baseGen
+
+      override protected def recursiveGen[A: Arbitrary: Cogen](deeper: GenK[[A] =>> Reader[R, A]]): List[(String, Gen[Reader[R, A]])] =
+        ("local", genLocal[A](deeper)) :: super.recursiveGen(deeper)
+
+      private def genAsk[A: Arbitrary]: Gen[Reader[R, A]] =
+        for
+          a <- arbitrary[A]
+        yield Reader.ask.map(_ => a)
+
+      private def genAsks[A: Arbitrary]: Gen[Reader[R, A]] =
+        for
+          f <- arbitrary[R => A]
+        yield Reader.asks(f)
+
+      private def genLocal[A: Arbitrary: Cogen](deeper: GenK[[A] =>> Reader[R, A]]): Gen[Reader[R, A]] =
+        for
+          fa <- deeper[A]
+          f <- arbitrary[R => R]
+        yield Reader.local(fa)(f)
+
+  given [R: Arbitrary: Cogen, A: Arbitrary: Cogen]: Arbitrary[Reader[R, A]] =
+    Arbitrary(generators[R].generators[A])

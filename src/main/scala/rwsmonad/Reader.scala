@@ -9,7 +9,7 @@ object Reader:
 
   def asks[R, A](f: R => A): Reader[R, A] = f
 
-  def local[R1, R2, A](f: R1 => R2)(r: Reader[R2, A]): Reader[R1, A] =
+  def local[R1, R2, A](r: Reader[R2, A])(f: R1 => R2): Reader[R1, A] =
     r1 => r(f(r1))
 
   given [R]: Functor[[A] =>> Reader[R, A]] with
