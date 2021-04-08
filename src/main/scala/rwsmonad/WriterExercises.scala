@@ -8,8 +8,8 @@ object WriterExercises:
 
   def augmentAndStringify(x: Int, y: Int): Writer[List[String], String] =
     for
-      _ <- Writer.tell(List("augmenting..."))
+      _ <- Writer.tell[List[String]](List("augmenting..."))
       newX <- addTwo(x)
       newY <- addTwo(y)
-      _ <- Writer.tell(List("stringifying..."))
+      _ <- Writer.tell[List[String]](List("stringifying..."))
     yield s"$newX $newY"
