@@ -1,6 +1,6 @@
 name := "rwsmonad"
 
-scalaVersion := "3.0.1"
+scalaVersion := "3.0.2"
 
 libraryDependencies ++= Seq(
   "org.typelevel" %% "cats-laws" % "2.6.1" % Test,
