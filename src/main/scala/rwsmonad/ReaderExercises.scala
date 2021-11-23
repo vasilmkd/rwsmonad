@@ -23,7 +23,11 @@ object ReaderExercises:
       upperMotd <- toUpperStr(motd)
     yield s"Welcome, $upperUser! Message of the day: $upperMotd"
 
-  def fullName(name: String, surname: String, nickname: String): Reader[ABConfig, String] =
+  def fullName(
+      name: String,
+      surname: String,
+      nickname: String
+  ): Reader[ABConfig, String] =
     for
       upperName <- toUpperStr(name)
       upperNick <- toUpperStr(nickname)

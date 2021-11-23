@@ -6,8 +6,9 @@ trait Monoid[A]:
 
 object Monoid extends Monoid2:
   given [A]: Monoid[List[A]] with
-    extension (x: List[A]) def combine(y: List[A]): List[A] =
-      x ++ y
+    extension (x: List[A])
+      def combine(y: List[A]): List[A] =
+        x ++ y
     def empty: List[A] = Nil
 
 trait Monoid2:

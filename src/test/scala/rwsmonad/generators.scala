@@ -15,10 +15,12 @@ trait GenK[F[_]]:
 
 trait Generators1[F[_]]:
   protected val maxDepth: Int = 10
-  
+
   protected def baseGen[A: Arbitrary: Cogen]: List[(String, Gen[F[A]])] = Nil
 
-  protected def recursiveGen[A: Arbitrary: Cogen](deeper: GenK[F]): List[(String, Gen[F[A]])] = Nil
+  protected def recursiveGen[A: Arbitrary: Cogen](
+      deeper: GenK[F]
+  ): List[(String, Gen[F[A]])] = Nil
 
   private def gen[A: Arbitrary: Cogen](depth: Int): Gen[F[A]] =
     val genK: GenK[F] =
@@ -36,7 +38,9 @@ trait Generators1[F[_]]:
 trait FunctorGenerators[F[_]] extends Generators1[F]:
   given F: Functor[F]
 
-  override protected def recursiveGen[A: Arbitrary: Cogen](deeper: GenK[F]): List[(String, Gen[F[A]])] =
+  override protected def recursiveGen[A: Arbitrary: Cogen](
+      deeper: GenK[F]
+  ): List[(String, Gen[F[A]])] =
     ("map", genMap(deeper)) :: super.recursiveGen(deeper)
 
   private def genMap[A: Arbitrary: Cogen](deeper: GenK[F]): Gen[F[A]] =
@@ -48,10 +52,13 @@ trait FunctorGenerators[F[_]] extends Generators1[F]:
 trait ApplicativeGenerators[F[_]] extends FunctorGenerators[F]:
   override given F: Applicative[F]
 
-  override protected def baseGen[A: Arbitrary: Cogen]: List[(String, Gen[F[A]])] =
+  override protected def baseGen[A: Arbitrary: Cogen]
+      : List[(String, Gen[F[A]])] =
     ("pure", genPure) :: super.baseGen
 
-  override protected def recursiveGen[A: Arbitrary: Cogen](deeper: GenK[F]): List[(String, Gen[F[A]])] =
+  override protected def recursiveGen[A: Arbitrary: Cogen](
+      deeper: GenK[F]
+  ): List[(String, Gen[F[A]])] =
     ("ap", genAp(deeper)) :: super.recursiveGen(deeper)
 
   private def genPure[A: Arbitrary]: Gen[F[A]] =
@@ -66,7 +73,9 @@ trait ApplicativeGenerators[F[_]] extends FunctorGenerators[F]:
 trait MonadGenerators[F[_]] extends ApplicativeGenerators[F]:
   override given F: Monad[F]
 
-  override protected def recursiveGen[A: Arbitrary: Cogen](deeper: GenK[F]): List[(String, Gen[F[A]])] =
+  override protected def recursiveGen[A: Arbitrary: Cogen](
+      deeper: GenK[F]
+  ): List[(String, Gen[F[A]])] =
     ("flatMap", genFlatMap(deeper)) :: super.recursiveGen(deeper)
 
   private def genFlatMap[A: Arbitrary: Cogen](deeper: GenK[F]): Gen[F[A]] =
@@ -80,7 +89,8 @@ object StateGenerators:
     new MonadGenerators[[A] =>> State[S, A]]:
       given F: Monad[[A] =>> State[S, A]] = State.given_Monad_State
 
-      override protected def baseGen[A: Arbitrary: Cogen]: List[(String, Gen[State[S, A]])] =
+      override protected def baseGen[A: Arbitrary: Cogen]
+          : List[(String, Gen[State[S, A]])] =
         List(
           ("get", genGet),
           ("put", genPut),
@@ -88,8 +98,7 @@ object StateGenerators:
         ) ++ super.baseGen
 
       private def genGet[A: Arbitrary]: Gen[State[S, A]] =
-        for
-          a <- arbitrary[A]
+        for a <- arbitrary[A]
         yield State.get.map(_ => a)
 
       private def genPut[A: Arbitrary]: Gen[State[S, A]] =
@@ -112,26 +121,29 @@ object ReaderGenerators:
     new MonadGenerators[[A] =>> Reader[R, A]]:
       given F: Monad[[A] =>> Reader[R, A]] = Reader.given_Monad_Reader
 
-      override protected def baseGen[A: Arbitrary: Cogen]: List[(String, Gen[Reader[R, A]])] =
+      override protected def baseGen[A: Arbitrary: Cogen]
+          : List[(String, Gen[Reader[R, A]])] =
         List(
           ("ask", genAsk),
           ("asks", genAsks)
         ) ++ super.baseGen
 
-      override protected def recursiveGen[A: Arbitrary: Cogen](deeper: GenK[[A] =>> Reader[R, A]]): List[(String, Gen[Reader[R, A]])] =
+      override protected def recursiveGen[A: Arbitrary: Cogen](
+          deeper: GenK[[A] =>> Reader[R, A]]
+      ): List[(String, Gen[Reader[R, A]])] =
         ("local", genLocal[A](deeper)) :: super.recursiveGen(deeper)
 
       private def genAsk[A: Arbitrary]: Gen[Reader[R, A]] =
-        for
-          a <- arbitrary[A]
+        for a <- arbitrary[A]
         yield Reader.ask.map(_ => a)
 
       private def genAsks[A: Arbitrary]: Gen[Reader[R, A]] =
-        for
-          f <- arbitrary[R => A]
+        for f <- arbitrary[R => A]
         yield Reader.asks(f)
 
-      private def genLocal[A: Arbitrary: Cogen](deeper: GenK[[A] =>> Reader[R, A]]): Gen[Reader[R, A]] =
+      private def genLocal[A: Arbitrary: Cogen](
+          deeper: GenK[[A] =>> Reader[R, A]]
+      ): Gen[Reader[R, A]] =
         for
           fa <- deeper[A]
           f <- arbitrary[R => R]
@@ -141,15 +153,18 @@ object ReaderGenerators:
     Arbitrary(generators[R].generators[A])
 
 object WriterGenerators:
-  def generators[L: Monoid: Arbitrary: Cogen]: MonadGenerators[[A] =>> Writer[L, A]] =
+  def generators[L: Monoid: Arbitrary: Cogen]
+      : MonadGenerators[[A] =>> Writer[L, A]] =
     new MonadGenerators[[A] =>> Writer[L, A]]:
       given F: Monad[[A] =>> Writer[L, A]] = Writer.given_Monad_Writer
 
-      override protected def baseGen[A: Arbitrary: Cogen]: List[(String, Gen[Writer[L, A]])] =
+      override protected def baseGen[A: Arbitrary: Cogen]
+          : List[(String, Gen[Writer[L, A]])] =
         ("tell", genTell) :: super.baseGen
 
       override protected def recursiveGen[A: Arbitrary: Cogen](
-          deeper: GenK[[A] =>> Writer[L, A]]): List[(String, Gen[Writer[L, A]])] =
+          deeper: GenK[[A] =>> Writer[L, A]]
+      ): List[(String, Gen[Writer[L, A]])] =
         List(
           ("censor", genCensor(deeper)),
           ("listen", genListen(deeper))
@@ -161,16 +176,20 @@ object WriterGenerators:
           a <- arbitrary[A]
         yield Writer.tell(l).map(_ => a)
 
-      private def genCensor[A: Arbitrary: Cogen](deeper: GenK[[A] =>> Writer[L, A]]): Gen[Writer[L, A]] =
+      private def genCensor[A: Arbitrary: Cogen](
+          deeper: GenK[[A] =>> Writer[L, A]]
+      ): Gen[Writer[L, A]] =
         for
           fa <- deeper[A]
           f <- arbitrary[L => L]
         yield fa.censor(f)
 
-      private def genListen[A: Arbitrary: Cogen](deeper: GenK[[A] =>> Writer[L, A]]): Gen[Writer[L, A]] =
-        for
-          fa <- deeper[A]
+      private def genListen[A: Arbitrary: Cogen](
+          deeper: GenK[[A] =>> Writer[L, A]]
+      ): Gen[Writer[L, A]] =
+        for fa <- deeper[A]
         yield fa.listen.map(_._1)
 
-  given [L: Monoid: Arbitrary: Cogen, A: Arbitrary: Cogen]: Arbitrary[Writer[L, A]] =
+  given [L: Monoid: Arbitrary: Cogen, A: Arbitrary: Cogen]
+      : Arbitrary[Writer[L, A]] =
     Arbitrary(generators[L].generators[A])
