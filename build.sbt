@@ -1,6 +1,6 @@
-ThisBuild / scalaVersion := "3.0.2"
-ThisBuild / githubWorkflowJavaVersions := Seq("adoptium@11")
-ThisBuild / githubWorkflowEnv += ("JABBA_INDEX" -> "https://github.com/vasilmkd/jdk-index/raw/main/index.json")
+ThisBuild / scalaVersion := "3.1.0"
+ThisBuild / githubWorkflowJavaVersions := Seq("adoptium@17")
+ThisBuild / githubWorkflowEnv += ("JABBA_INDEX" -> "https://github.com/typelevel/jdk-index/raw/main/index.json")
 ThisBuild / githubWorkflowTargetBranches := Seq("main")
 ThisBuild / githubWorkflowUseSbtThinClient := false
 ThisBuild / githubWorkflowPublishTargetBranches := Seq()
