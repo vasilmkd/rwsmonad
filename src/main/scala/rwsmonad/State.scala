@@ -12,10 +12,10 @@ object State:
     _ => (s, ())
 
   def modify[S](f: S => S): State[S, Unit] =
-    for {
+    for
       s <- get
       _ <- put(f(s))
-    } yield ()
+    yield ()
 
   given [S]: Functor[[A] =>> State[S, A]] with
     extension [A](fa: State[S, A])
